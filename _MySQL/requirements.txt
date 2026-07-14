@@ -1,0 +1,9 @@
+pandas
+numpy
+sqlalchemy
+mysql-connector-python
+python-dotenv
+matplotlib
+jupyter
+notebook
+gdown

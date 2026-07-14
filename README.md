@@ -1,6 +1,6 @@
 # Pipeline de Dados – Viagens a Serviço do Governo Federal
 
-## sx Sobre o projeto
+##  Sobre o projeto
 
 Este projeto tem como objetivo construir um pipeline de dados completo utilizando **Python, SQL e Arquitetura Medallion (Raw, Silver e Gold)**, transformando dados públicos brutos do Portal da Transparência em informações confiáveis para análise e tomada de decisão.
 
@@ -183,10 +183,11 @@ python -m pip install -r requirements.txt
 Criar um arquivo `.env` baseado no `.env.example`:
 
 ```
-DB_HOST=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD= "digite aqui sua senha"
+MYSQL_DATABASE=transparencia
 ```
 
 ---

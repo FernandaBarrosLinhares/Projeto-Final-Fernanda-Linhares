@@ -1,4 +1,4 @@
-import banco
+import scripts.banco as banco
 
 # ==========================================================
 # 1) Limpar tabelas SILVER

@@ -2,8 +2,8 @@ import pandas as pd
 import zipfile as zf
 import  gdown as gd
 
-import banco
-import config
+import scripts.banco as banco
+import scripts.config as config
 
 
 def localizar_zip():

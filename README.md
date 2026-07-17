@@ -1,68 +1,48 @@
-# Pipeline de Dados – Viagens a Serviço do Governo Federal
+# Análise de Viagens a Serviço - Portal da Transparência
 
-##  Sobre o projeto
+## Sobre o Projeto
 
-Este projeto tem como objetivo construir um pipeline de dados completo utilizando **Python, SQL e Arquitetura Medallion (Raw, Silver e Gold)**, transformando dados públicos brutos do Portal da Transparência em informações confiáveis para análise e tomada de decisão.
+Este projeto tem como objetivo realizar uma análise de dados de viagens a serviço utilizando dados públicos disponibilizados pelo Portal da Transparência.
 
-A solução realiza a extração automatizada dos dados de viagens a serviço, preserva os dados originais, realiza tratamentos e modelagem relacional, e disponibiliza análises de negócio por meio de consultas SQL, tabelas agregadas e visualizações gráficas.
+Foi desenvolvida uma pipeline de dados utilizando a arquitetura **Medallion**, passando pelas camadas:
 
----
+- **Raw**: armazenamento dos dados originais.
+- **Silver**: tratamento, padronização e aplicação de regras de negócio.
+- **Gold**: criação de tabelas analíticas para responder perguntas de negócio.
 
-#  Qual problema resolve?
-
-Os dados públicos disponibilizados pelo Portal da Transparência possuem grande volume e são apresentados em formato bruto, dificultando análises rápidas e confiáveis.
-
-Este projeto resolve esse problema através da criação de um pipeline de dados capaz de:
-
-- Automatizar a extração dos dados;
-- Preservar o histórico original para auditoria;
-- Transformar dados inconsistentes em informações estruturadas;
-- Aplicar regras de qualidade e integridade;
-- Gerar indicadores para análise dos gastos públicos com viagens.
+O projeto foi desenvolvido utilizando Python, SQL, MySQL, Pandas e Jupyter Notebook.
 
 ---
 
-#  Para quem é essa solução?
+# Arquitetura de Dados
 
-A solução pode apoiar:
-
-- Gestores públicos;
-- Equipes de transparência e controle;
-- Analistas de dados;
-- Profissionais responsáveis pelo acompanhamento de gastos públicos;
-- Cidadãos interessados em compreender a utilização dos recursos públicos.
-
----
-
-#  Arquitetura do projeto
-
-O projeto utiliza a **Arquitetura Medallion**, organizada em três camadas:
+A solução segue o modelo de camadas:
 
 ```
-Dados Brutos
-      |
-      ↓
-    RAW
-      |
-      ↓
-   SILVER
-      |
-      ↓
-    GOLD
-      |
-      ↓
-Análises e Indicadores
+Dados CSV
+   |
+   v
+RAW
+   |
+   v
+SILVER
+   |
+   v
+GOLD
+   |
+   v
+Análises e Visualizações
 ```
 
-##  Camada Raw
+## Modelo do Banco de Dados
 
-Responsável por armazenar os dados exatamente como foram disponibilizados na fonte original.
+![Modelo do Banco de Dados](assets/bd.png)
 
-Características:
+---
 
-- Dados preservados sem alteração;
-- Todas as colunas armazenadas como texto (`VARCHAR`);
-- Permite rastreabilidade e auditoria.
+# Camada Raw
+
+A camada Raw representa os dados extraídos dos arquivos originais, mantendo a estrutura inicial sem alterações.
 
 Tabelas:
 
@@ -71,25 +51,26 @@ Tabelas:
 - `raw_passagem`
 - `raw_trecho`
 
+Características:
+
+- Dados carregados diretamente dos arquivos CSV.
+- Campos mantidos no formato original.
+- Sem aplicação de regras de negócio.
+
 ---
 
-##  Camada Silver
+# Camada Silver
 
-Responsável pela limpeza, transformação e organização dos dados.
+A camada Silver realiza o tratamento e preparação dos dados para análise.
 
-Foram aplicados:
+Processos realizados:
 
-- Conversão de tipos;
-- Tratamento de valores monetários;
-- Conversão de datas;
-- Criação de chaves primárias e estrangeiras;
-- Aplicação de constraints;
+- Conversão de tipos de dados.
+- Padronização de informações.
+- Tratamento de valores nulos.
+- Criação de chaves primárias e relacionamentos.
+- Aplicação de restrições.
 - Criação de campos calculados.
-
-Campos calculados:
-
-- `valor_total`
-- `duracao_dias`
 
 Tabelas:
 
@@ -98,135 +79,236 @@ Tabelas:
 - `silver_passagem`
 - `silver_trecho`
 
----
+Campos calculados:
 
-##  Camada Gold
+- `valor_total`
+- `duracao_dias`
 
-Camada preparada para consumo analítico.
-
-Foram criadas:
-
-- Tabelas agregadas;
-- Views analíticas;
-- Consultas utilizando `JOIN` e `GROUP BY`;
-- Indicadores para apoio à tomada de decisão.
+A tabela `silver_viagem` concentra as informações principais das viagens e foi utilizada para responder as primeiras análises.
 
 ---
 
-#  Tecnologias utilizadas
+# Camada Gold
+
+A camada Gold foi criada para disponibilizar informações agregadas e prontas para análise.
+
+## Perguntas 1, 2 e 3
+
+As consultas foram realizadas utilizando principalmente a tabela:
+
+```
+silver_viagem
+```
+
+### Pergunta 1
+
+**Quais órgãos possuem maior custo total em viagens?**
+
+Análise utilizando:
+
+- órgão responsável;
+- soma do valor_total das viagens.
+
+---
+
+### Pergunta 2
+
+**Quais destinos apresentam maior custo médio por viagem?**
+
+Análise utilizando:
+
+- destino;
+- média do valor_total.
+
+---
+
+### Pergunta 3
+
+**Qual foi a viagem de maior duração e seu custo total?**
+
+Análise utilizando:
+
+- duração da viagem;
+- valor_total.
+
+---
+
+# Tabelas Gold Analíticas
+
+Foram criadas tabelas específicas para responder perguntas de negócio.
+
+---
+
+## gold_tipo_pagamento
+
+Utilizada para responder:
+
+**Qual tipo de pagamento possui maior valor médio?**
+
+Origem:
+
+- `silver_pagamento`
+
+Tratamento realizado:
+
+- agrupamento por tipo de pagamento;
+- cálculo do valor médio.
+
+---
+
+## gold_meio_transporte
+
+Utilizada para responder:
+
+**Qual meio de transporte foi mais utilizado nos trechos?**
+
+Origem:
+
+- `silver_trecho`
+
+Tratamento realizado:
+
+- contagem dos meios de transporte utilizados.
+
+---
+
+## gold_destino_uf
+
+Utilizada para responder:
+
+**Qual UF de destino possui maior quantidade de trechos?**
+
+Origem:
+
+- `silver_trecho`
+
+Tratamento realizado:
+
+- agrupamento por UF;
+- contagem de ocorrências.
+
+---
+
+# Gold com JOIN
+
+## gold_resumo_orgao
+
+Criada para responder:
+
+**Qual órgão apresentou o maior gasto total em viagens?**
+
+Esta tabela consolida informações financeiras utilizando relacionamento entre tabelas Silver.
+
+Relacionamentos utilizados:
+
+- `silver_viagem`
+- `silver_pagamento`
+
+O objetivo foi criar uma visão analítica consolidada por órgão.
+
+---
+
+# Views Analíticas
+
+Foram criadas views para facilitar o acesso aos resultados Gold:
+
+- `vw_gold_resumo_orgao`
+- `vw_gold_tipo_pagamento`
+- `vw_gold_meio_transporte`
+- `vw_gold_destino_uf`
+
+As views permitem consultas mais simples sem necessidade de executar novamente toda a lógica de agregação.
+
+---
+
+# Pipeline do Projeto
+
+## 1 - Extração
+
+Script responsável por:
+
+- baixar os arquivos;
+- realizar leitura dos CSVs;
+- carregar os dados na camada Raw.
+
+Arquivo:
+
+```
+1_extrair.py
+```
+
+---
+
+## 2 - Transformação
+
+Script responsável por:
+
+- transformar dados Raw em Silver;
+- aplicar regras de negócio;
+- criar campos calculados.
+
+Arquivo:
+
+```
+2_transformar.py
+```
+
+---
+
+## 3 - Análise
+
+Notebook responsável por:
+
+- executar consultas Gold;
+- validar resultados;
+- gerar gráficos;
+- realizar análises.
+
+Arquivo:
+
+```
+3_analise.ipynb
+```
+
+---
+
+# Tecnologias Utilizadas
 
 - Python
-- SQL
-- MySQL
 - Pandas
-- Matplotlib
-- SQLAlchemy
+- MySQL
+- SQL
 - Jupyter Notebook
-- Git/GitHub
+- Git
+- GitHub
 
 ---
 
-#  Estrutura do projeto
+# Como Executar o Projeto
 
-```
-Projeto_Final_Fernanda_Linhares/
-
-│
-├── 0_criar_banco.sql
-├── 1_extrair.py
-├── 2_transformar.py
-├── 3_analise.ipynb
-│
-├── banco.py
-├── config.py
-│
-├── requirements.txt
-├── README.md
-├── .env.example
-└── .gitignore
-```
-
----
-
-# ▶️ Como executar o projeto
-
-## 1. Clonar o repositório
+## Instalar dependências
 
 ```bash
-git clone URL_DO_REPOSITORIO
+pip install -r requirements.txt
 ```
 
-## 2. Criar ambiente virtual
+## Configurar ambiente
 
-```bash
-python -m venv venv
-```
+Criar arquivo `.env` contendo as informações de conexão com o banco.
 
-Ativar no Windows:
-
-```bash
-venv\Scripts\activate
-```
-
----
-
-## 3. Instalar dependências
-
-```bash
-python -m pip install -r requirements.txt
-```
-
----
-
-## 4. Configurar variáveis de ambiente
-
-Criar um arquivo `.env` baseado no `.env.example`:
-
-```
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD= "digite aqui sua senha"
-MYSQL_DATABASE=transparencia
-```
-
----
-
-## 5. Executar o pipeline
-
-### Criar banco e tabelas
-
-Executar:
-
-```
-0_criar_banco.sql
-```
-
-### Executar extração dos dados
+## Executar extração
 
 ```bash
 python 1_extrair.py
 ```
 
-Processo realizado:
-
-- Download automático do arquivo;
-- Leitura dos arquivos CSV;
-- Carga na camada Raw.
-
-### Executar transformação
+## Executar transformação
 
 ```bash
 python 2_transformar.py
 ```
 
-Processo realizado:
-
-- Limpeza dos dados;
-- Conversão dos tipos;
-- Criação da camada Silver.
-
-### Executar análises
+## Executar análise
 
 Abrir:
 
@@ -236,53 +318,49 @@ Abrir:
 
 ---
 
-#  Resultados e impacto
+# Resultados Obtidos
 
-O pipeline possibilitou transformar dados públicos brutos em informações estruturadas para análise.
+O projeto possibilitou analisar:
 
-Foram respondidas perguntas de negócio relacionadas a:
-
-- Órgãos com maior custo total;
-- Destinos com maior custo médio por viagem;
-- Viagem de maior duração;
-- Tipos de pagamento com maior valor médio;
-- Meios de transporte mais utilizados;
-- Estados de destino com maior ocorrência;
-- Órgãos com maior volume financeiro pago.
-
-Os resultados permitem uma visão mais clara sobre a distribuição dos gastos públicos com viagens a serviço.
+- órgãos com maiores custos;
+- destinos com maior custo médio;
+- viagens com maior duração;
+- tipos de pagamento;
+- meios de transporte utilizados;
+- principais destinos por UF;
+- consolidação de gastos por órgão.
 
 ---
 
-#  O que aprendi?
+# Estrutura Final do Banco
 
-Durante o desenvolvimento do projeto foram aplicados conhecimentos de:
+### Raw
 
-- Construção de pipelines ETL;
-- Arquitetura Medallion;
-- Tratamento e qualidade de dados;
-- Modelagem relacional;
-- Integração entre Python e banco de dados;
-- Consultas SQL analíticas;
-- Visualização de dados;
-- Organização e versionamento com GitHub.
+- raw_viagem
+- raw_pagamento
+- raw_passagem
+- raw_trecho
 
----
 
-# Melhorias futuras
+### Silver
 
-Como evolução do projeto, podem ser aplicadas:
+- silver_viagem
+- silver_pagamento
+- silver_passagem
+- silver_trecho
 
-- Automatização do pipeline com ferramentas de orquestração;
-- Criação de dashboards interativos;
-- Implantação em ambiente de nuvem;
-- Aplicação de modelos preditivos para análise de gastos;
-- Criação de alertas para identificação de padrões de despesas.
 
----
+### Gold
 
-# Autora
+- gold_destino_uf
+- gold_meio_transporte
+- gold_tipo_pagamento
+- gold_resumo_orgao
 
-Fernanda Linhares
 
-Projeto desenvolvido como parte da formação em **Análise de Dados com Python**.
+### Views
+
+- vw_gold_destino_uf
+- vw_gold_meio_transporte
+- vw_gold_tipo_pagamento
+- vw_gold_resumo_orgao
